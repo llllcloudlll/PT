@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Patron PT Systems V6</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#7c3aed">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="glass-panel login-panel">
+            <div class="logo-circle">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <h2 class="logo-text">PATRON PT <span>V6</span></h2>
+            <p class="logo-sub">Elite Performance System</p>
+            <input type="text" id="username" placeholder="Adın Soyadın">
+            <button class="btn" onclick="login()">Giriş Yap</button>
+        </div>
+    </div>
+
+    <div id="setup-wizard">
+        <div class="glass-panel center-content">
+            <h2>Hoşgeldin, <span id="setup-name" class="highlight"></span></h2>
+            <p>Sistemi senin için optimize edelim.</p>
+            <label class="label-left">Haftalık Antrenman Sıklığı:</label>
+            <select id="days-select">
+                <option value="3">3 Gün (Full Body)</option>
+                <option value="4">4 Gün (Upper/Lower)</option>
+                <option value="5">5 Gün (Bölgesel)</option>
+                <option value="6">6 Gün (PPL)</option>
+            </select>
+            <button class="btn" onclick="finishSetup()">Profilimi Oluştur</button>
+        </div>
+    </div>
+
+    <div id="program-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Gün</h3>
+                <button onclick="closeModal()" class="close-btn">&times;</button>
+            </div>
+            <div id="view-mode">
+                <div id="rest-badge"><i class="fas fa-bed"></i> RECOVERY DAY</div>
+                <div id="modal-desc-container"><p id="modal-desc"></p></div>
+                <button class="btn btn-outline" onclick="toggleEditMode()"><i class="fas fa-pen"></i> Programı Düzenle</button>
+            </div>
+            <div id="edit-mode" style="display:none;">
+                <input type="text" id="edit-title-input" placeholder="Gün Başlığı">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="is-rest-check"><span>Dinlenme Günü Olarak İşaretle</span>
+                </label>
+                <textarea id="edit-desc-input" placeholder="Hareketleri ve setleri buraya yaz..."></textarea>
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="saveProgramChanges()">Kaydet</button>
+                    <button class="btn btn-secondary" onclick="toggleEditMode()">İptal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app">
+        <div class="app-header">
+            <div><small>Tekrar Hoşgeldin,</small><h2 id="header-user">PATRON</h2></div>
+            <div id="header-avatar"></div>
+        </div>
+
+        <div id="sec-program" class="section active">
+            <div class="section-header">
+                <h3 class="section-title">Haftalık Rutin</h3>
+                <button onclick="installPWA()" id="install-btn" style="display:none;" class="btn-sm"><i class="fas fa-download"></i> Yükle</button>
+            </div>
+            <div class="grid-container" id="cards-wrapper"></div>
+        </div>
+
+        <div id="sec-stats" class="section">
+            <h3 class="section-title">Performans Laboratuvarı</h3>
+            <div class="glass-panel">
+                <p class="panel-info">Hareket verilerini gir, yapay zeka analiz etsin.</p>
+                <input type="text" id="log-exercise" placeholder="Hareket (Örn: Squat)">
+                <input type="number" id="log-set-count" placeholder="Kaç Set Atıldı?" oninput="renderSetInputs()">
+                <div id="dynamic-sets-container"></div>
+                <button class="btn" onclick="logDetailedData()">Analiz Et ve İşle</button>
+            </div>
+            <div class="glass-panel" id="analysis-box" style="display:none;">
+                <div class="stat-grid">
+                    <div class="stat-item"><small>Tahmini 1RM</small><span id="res-1rm">0 kg</span></div>
+                    <div class="stat-item"><small>Toplam Hacim</small><span id="res-vol">0 kg</span></div>
+                </div>
+                <div id="engine-result" class="engine-feedback"></div>
+            </div>
+            <div class="glass-panel">
+                <canvas id="progressChart"></canvas>
+            </div>
+        </div>
+
+        <div id="sec-profile" class="section">
+            <div class="glass-panel water-panel">
+                <div class="panel-header"><h3 class="water-title"><i class="fas fa-tint"></i> Hidrasyon</h3><small id="water-date"></small></div>
+                <div class="water-bar-container">
+                    <div class="water-fill" id="water-fill"></div>
+                    <div class="water-text"><span id="water-amount">0</span> / 3000 ml</div>
+                </div>
+                <div class="water-buttons">
+                    <button class="btn-water" onclick="addWater(200)">+200ml</button>
+                    <button class="btn-water" onclick="addWater(500)">+500ml</button>
+                </div>
+            </div>
+
+            <div class="glass-panel">
+                <h3>Patron Profili</h3>
+                <div class="profile-pic-wrapper">
+                    <img id="profile-display" src="https://via.placeholder.com/150/000000/FFFFFF/?text=FOTO" alt="Profil">
+                    <label class="photo-upload-btn">
+                        <i class="fas fa-camera"></i> Fotoğraf Değiştir
+                        <input type="file" accept="image/*" onchange="uploadPhoto(this)">
+                    </label>
+                </div>
+                
+                <div class="input-group"><label>Boy (cm)</label><input type="number" id="p-height"></div>
+                <div class="input-group"><label>Kilo (kg)</label><input type="number" id="p-weight"></div>
+                <div class="input-group"><label>Telefon</label><input type="tel" id="p-phone" placeholder="05XX..."></div>
+                <div class="input-group"><label>E-Posta</label><input type="email" id="p-email" placeholder="mail@site.com"></div>
+
+                <button class="btn" onclick="saveProfileData()">Profili Güncelle</button>
+                <p id="bmi-text"></p>
+                <button onclick="logout()" class="logout-btn">Çıkış Yap</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item active" onclick="switchTab('sec-program', this)"><i class="fas fa-calendar-alt"></i></div>
+        <div class="tab-item" onclick="switchTab('sec-stats', this)"><i class="fas fa-chart-line"></i></div>
+        <div class="tab-item" onclick="switchTab('sec-profile', this)"><i class="fas fa-user-astronaut"></i></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
