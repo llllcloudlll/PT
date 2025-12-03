@@ -23,12 +23,14 @@
             </div>
             <h2 class="logo-text">PATRON PT <span>V6</span></h2>
             <p class="logo-sub">Elite Performance System</p>
+            
             <input type="text" id="username" placeholder="Adın Soyadın">
+            
             <button class="btn" onclick="login()">Giriş Yap</button>
         </div>
     </div>
 
-    <div id="setup-wizard">
+    <div id="setup-wizard" style="display:none;">
         <div class="glass-panel center-content">
             <h2>Hoşgeldin, <span id="setup-name" class="highlight"></span></h2>
             <p>Sistemi senin için optimize edelim.</p>
@@ -68,7 +70,7 @@
         </div>
     </div>
 
-    <div id="app">
+    <div id="app" style="display:none;">
         <div class="app-header">
             <div><small>Tekrar Hoşgeldin,</small><h2 id="header-user">PATRON</h2></div>
             <div id="header-avatar"></div>
@@ -133,7 +135,7 @@
 
                 <button class="btn" onclick="saveProfileData()">Profili Güncelle</button>
                 <p id="bmi-text"></p>
-                <button onclick="logout()" class="logout-btn">Çıkış Yap</button>
+                <button onclick="logout()" class="logout-btn">Hesabı Kilitle (Çıkış)</button>
             </div>
         </div>
     </div>
