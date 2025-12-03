@@ -5,6 +5,24 @@ let logs = [];
 let chartInstance = null;
 let currentEditingDay = null;
 
+// --- SAYFA YÜKLENDİĞİNDE (OTO GİRİŞ & HATIRLAMA) ---
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Durum: Otomatik Giriş (Aktif Oturum Varsa)
+    const activeUser = localStorage.getItem('patron_active_user');
+    
+    // 2. Durum: Son Girilen Kullanıcı Adı (Çıkış Yapılmışsa bile hatırla)
+    const rememberedName = localStorage.getItem('patron_remember_name');
+
+    if (activeUser) {
+        // Oturum açıksa direkt gir
+        currentUser = activeUser;
+        loadUserAndStart();
+    } else if (rememberedName) {
+        // Oturum kapalı ama isim hafızada ise kutuya yaz
+        document.getElementById('username').value = rememberedName;
+    }
+});
+
 // --- GİRİŞ & AUTH ---
 function login() {
     const u = document.getElementById('username').value.trim();
@@ -12,21 +30,37 @@ function login() {
 
     currentUser = u;
     
+    // İsmi sonsuza kadar hatırla (Beni Hatırla)
+    localStorage.setItem('patron_remember_name', u);
+    
+    // Aktif oturumu başlat
+    localStorage.setItem('patron_active_user', u);
+
+    loadUserAndStart();
+}
+
+function loadUserAndStart() {
     // Verileri çek
-    userData = JSON.parse(localStorage.getItem('patron_user_v6_' + u)) || { setupComplete: false };
+    userData = JSON.parse(localStorage.getItem('patron_user_v6_' + currentUser)) || { setupComplete: false };
     logs = JSON.parse(localStorage.getItem('patron_logs_v6')) || [];
 
     document.getElementById('login-screen').style.display = 'none';
 
     if (userData.setupComplete === false) {
-        document.getElementById('setup-name').innerText = u;
+        document.getElementById('setup-name').innerText = currentUser;
         document.getElementById('setup-wizard').style.display = 'flex';
     } else {
         initApp();
     }
 }
 
-function logout() { location.reload(); }
+function logout() {
+    // Sadece "otomatik girişi" durduruyoruz
+    localStorage.removeItem('patron_active_user');
+    
+    // Ama "remember_name" silinmiyor, yani adın kutuda kalacak.
+    location.reload();
+}
 
 // --- SETUP ---
 function finishSetup() {
@@ -63,7 +97,7 @@ function initApp() {
     document.getElementById('header-user').innerText = currentUser.toUpperCase();
     
     if (userData.program) renderCards();
-    loadProfileUI(); // Profil resmini yükle
+    loadProfileUI(); 
     checkWaterDate();
     initChart();
 }
@@ -282,11 +316,7 @@ function saveProfileData() {
 
 function loadProfileUI() {
     if (userData.profile.photo) {
-        // Büyük Profil Resmi
-        const img = document.getElementById('profile-display');
-        img.src = userData.profile.photo;
-        
-        // Header Avatar Resmi (Düzeltilen Kısım)
+        document.getElementById('profile-display').src = userData.profile.photo;
         document.getElementById('header-avatar').innerHTML = `<img src="${userData.profile.photo}">`;
     }
     
@@ -303,8 +333,6 @@ function uploadPhoto(input) {
             const base64 = e.target.result;
             userData.profile.photo = base64;
             saveUserData();
-            
-            // Anlık Güncelleme
             document.getElementById('profile-display').src = base64;
             document.getElementById('header-avatar').innerHTML = `<img src="${base64}">`;
         }
